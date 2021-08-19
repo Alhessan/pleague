@@ -17,10 +17,10 @@ class Match extends Model
         return $this->hasMany(TeamMatch::class, 'match_id');
     }
     public function homeTeamMatch(){
-        return $this->teamMatches()->where('type',0)->first();
+        return $this->hasOne(TeamMatch::class, 'match_id')->where('type',0);
     }
     public function guestTeamMatch(){
-        return $this->teamMatches()->where('type',1)->first();
+        return $this->hasOne(TeamMatch::class, 'match_id')->where('type',1);
     }
     public function week(){
         return $this->belongsTo(Week::class);

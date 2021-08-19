@@ -50,6 +50,9 @@ class MatchesController extends Controller
 
             });
         }
+
+        $init = new Week(['id'=>0,'order'=>0, 'name'=>'0th']);
+        return ['matches' => $weeks->first()->matches()->with(['homeTeamMatch.team', 'guestTeamMatch.team'])->get(), 'week'=>$init];
 //        dd( Match::all());
     }
 
@@ -61,7 +64,14 @@ class MatchesController extends Controller
     public function getWeekMatchesResults(Request $request)
     {
         try {
-            $week = Week::findOrFail($request->week_id);
+//            if($request->week_id ==0)
+//                $week = Week::first();
+//            else
+            if($request->week_id<=0 && $request->week_id >6 )
+                return;
+            $week = Week::find($request->week_id);
+
+
             $matches = $week->matches;
 
             foreach ($matches as $match) {
@@ -69,12 +79,12 @@ class MatchesController extends Controller
                     $home_team_goals = rand(0, 8);
                     $guest_team_goals = rand(0, 8);
 
-                    $home_team_match = $match->homeTeamMatch();
+                    $home_team_match = $match->homeTeamMatch;
                     $home_team_match->result = $home_team_goals < $guest_team_goals ? 0 : ($home_team_goals > $guest_team_goals ? 3 : 1);
                     $home_team_match->goals_count = $home_team_goals < $guest_team_goals ? 0 : $home_team_goals;
                     $home_team_match->save();
 
-                    $guest_team_match = $match->guestTeamMatch();
+                    $guest_team_match = $match->guestTeamMatch;
                     $guest_team_match->result = $home_team_goals > $guest_team_goals ? 0 : ($home_team_goals < $guest_team_goals ? 3 : 1);
                     $guest_team_match->goals_count = $home_team_goals > $guest_team_goals ? 0 : $guest_team_goals;
                     $guest_team_match->save();
@@ -85,7 +95,9 @@ class MatchesController extends Controller
                 });
 
             }
-            return response()->json(['matches'=>[$week->matches]]);
+
+            return ['matches' => $week->matches()->with(['homeTeamMatch.team', 'guestTeamMatch.team'])->get(), 'week'=>$week];
+//            return response()->json(['matches'=>[$week->matches]]);
         }catch(Exception $ex){}
 
     }
@@ -109,12 +121,12 @@ class MatchesController extends Controller
                         $home_team_goals = rand(0, 8);
                         $guest_team_goals = rand(0, 8);
 
-                        $home_team_match = $match->homeTeamMatch();
+                        $home_team_match = $match->homeTeamMatch;
                         $home_team_match->result = $home_team_goals < $guest_team_goals ? 0 : ($home_team_goals > $guest_team_goals ? 3 : 1);
                         $home_team_match->goals_count = $home_team_goals < $guest_team_goals ? 0 : $home_team_goals;
                         $home_team_match->save();
 
-                        $guest_team_match = $match->guestTeamMatch();
+                        $guest_team_match = $match->guestTeamMatch;
                         $guest_team_match->result = $home_team_goals > $guest_team_goals ? 0 : ($home_team_goals < $guest_team_goals ? 3 : 1);
                         $guest_team_match->goals_count = $home_team_goals > $guest_team_goals ? 0 : $guest_team_goals;
                         $guest_team_match->save();
@@ -127,7 +139,7 @@ class MatchesController extends Controller
 
 
             }
-            return response()->json(['matches'=>[$weeks->last()->matches]]);
+            return ['matches'=>$weeks->last()->matches()->with(['homeTeamMatch.team', 'guestTeamMatch.team'])->get(), 'week'=>$weeks->last()];
 
         }catch(Exception $ex){}
 

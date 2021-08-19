@@ -13,10 +13,15 @@ class RecordsController extends Controller
     {
         $teams= Team::all();
         foreach ($teams as $team) {
-            $record= Record::create([
-                'team_id'=>$team->id
-            ]);
+            $record= $team->record;
+            if(!$record){
+                $record= Record::create([
+                    'team_id'=>$team->id
+                ]);
+            }
         }
+
+        return response()->json( json_encode (Record::all()));
     }
 
     public function  calculateRecords()
@@ -58,29 +63,35 @@ class RecordsController extends Controller
 
             $record->save();
         }
-        return response()->json( json_encode (Record::all()));
+        return response()->json(Record::with('team')->get());
     }
 
-    public $predictions = array();
+
     public function getPredictions()
     {
+        $predictions = collect();
 
         $teams= Team::all();
         if(!$teams) return;
-        $this->predictions = array();
+//        $this->predictions = array();
         $sumpoints = Record::sum('PTS');
         if($sumpoints <= 0) return null;
 
         foreach ($teams as $team) {
             $record= $team->record;
             $p = $record? round($record->PTS/$sumpoints * 100):0;
-            array_push($this->predictions ,[
+//            array_push($this->predictions ,[
+//                'team_id' => $team->id,
+//                'team_name' => $team->name,
+//                'prediction' => $p
+//            ]);
+            $predictions->add([
                 'team_id' => $team->id,
                 'team_name' => $team->name,
                 'prediction' => $p
             ]);
         }
-        return response()->json( $this->predictions);
+        return  $predictions;
     }
 
 }
